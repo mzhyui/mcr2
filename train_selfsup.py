@@ -10,6 +10,7 @@ import train_func as tf
 from augmentloader import AugmentLoader
 from loss import MaximalCodingRateReduction
 import utils
+from tqdm import tqdm
 
 
 
@@ -82,13 +83,18 @@ scheduler = lr_scheduler.MultiStepLR(optimizer, [30, 60], gamma=0.1)
 utils.save_params(model_dir, vars(args))
 
 ## Training
-for epoch in range(args.epo):
+pbar = tqdm(range(1, args.epo), ncols=120)
+for epoch in pbar:
+    pbar.set_description(f"Epoch {epoch}")
     for step, (batch_imgs, _, batch_idx) in enumerate(trainloader):
         batch_features = net(batch_imgs.cuda())
         loss, loss_empi, loss_theo = criterion(batch_features, batch_idx)
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
+        
+        pbar.set_postfix(loss="{:3.4f}".format(loss.item()))
+        
 
         utils.save_state(model_dir, epoch, step, loss.item(), *loss_empi, *loss_theo)
         if step % 20 == 0:
