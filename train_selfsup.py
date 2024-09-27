@@ -84,9 +84,11 @@ utils.save_params(model_dir, vars(args))
 
 ## Training
 pbar = tqdm(range(1, args.epo), ncols=120)
+step_count = 0
 for epoch in pbar:
     pbar.set_description(f"Epoch {epoch}")
     for step, (batch_imgs, _, batch_idx) in enumerate(trainloader):
+        print(batch_imgs.shape, batch_idx.shape)
         batch_features = net(batch_imgs.cuda())
         loss, loss_empi, loss_theo = criterion(batch_features, batch_idx)
         optimizer.zero_grad()
@@ -94,6 +96,8 @@ for epoch in pbar:
         optimizer.step()
         
         pbar.set_postfix(loss="{:3.4f}".format(loss.item()))
+        step_count += 1
+        pbar.set_postfix(step="{}".format(step_count))
         
 
         utils.save_state(model_dir, epoch, step, loss.item(), *loss_empi, *loss_theo)

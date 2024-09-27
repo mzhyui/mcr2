@@ -17,7 +17,7 @@ class MaximalCodingRateReduction(torch.nn.Module):
     def compute_discrimn_loss_empirical(self, W):
         """Empirical Discriminative Loss."""
         p, m = W.shape
-        I = torch.eye(p).cuda()
+        I = torch.eye(p, device=W.device, dtype=W.dtype)
         scalar = p / (m * self.eps)
         logdet = torch.logdet(I + self.gam1 * scalar * W.matmul(W.T))
         return logdet / 2.
@@ -26,7 +26,7 @@ class MaximalCodingRateReduction(torch.nn.Module):
         """Empirical Compressive Loss."""
         p, m = W.shape
         k, _, _ = Pi.shape
-        I = torch.eye(p).cuda()
+        I = torch.eye(p, device=W.device, dtype=W.dtype)
         compress_loss = 0.
         for j in range(k):
             trPi = torch.trace(Pi[j]) + 1e-8
@@ -38,7 +38,7 @@ class MaximalCodingRateReduction(torch.nn.Module):
     def compute_discrimn_loss_theoretical(self, W):
         """Theoretical Discriminative Loss."""
         p, m = W.shape
-        I = torch.eye(p).cuda()
+        I = torch.eye(p, device=W.device, dtype=W.dtype)
         scalar = p / (m * self.eps)
         logdet = torch.logdet(I + scalar * W.matmul(W.T))
         return logdet / 2.
@@ -47,13 +47,13 @@ class MaximalCodingRateReduction(torch.nn.Module):
         """Theoretical Compressive Loss."""
         p, m = W.shape
         k, _, _ = Pi.shape
-        I = torch.eye(p).cuda()
+        I = torch.eye(p, device=W.device, dtype=W.dtype)
         compress_loss = 0.
         for j in range(k):
             trPi = torch.trace(Pi[j]) + 1e-8
             scalar = p / (trPi * self.eps)
             log_det = torch.logdet(I + scalar * W.matmul(Pi[j]).matmul(W.T))
-            compress_loss += trPi / (2 * m) * log_det
+            compress_loss += trPi / (2. * m) * log_det
         return compress_loss
 
     def forward(self, X, Y, num_classes=None):
@@ -65,9 +65,15 @@ class MaximalCodingRateReduction(torch.nn.Module):
 
         discrimn_loss_empi = self.compute_discrimn_loss_empirical(W)
         compress_loss_empi = self.compute_compress_loss_empirical(W, Pi)
+
         discrimn_loss_theo = self.compute_discrimn_loss_theoretical(W)
         compress_loss_theo = self.compute_compress_loss_theoretical(W, Pi)
  
+        # print()
+        # print("discrimn_loss_empi", discrimn_loss_empi.item())
+        # print("compress_loss_empi", compress_loss_empi.item())
+        # print("discrimn_loss_theo", discrimn_loss_theo.item())
+        # print("compress_loss_theo", compress_loss_theo.item())
         total_loss_empi = self.gam2 * -discrimn_loss_empi + compress_loss_empi
         return (total_loss_empi,
                 [discrimn_loss_empi.item(), compress_loss_empi.item()],

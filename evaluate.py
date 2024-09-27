@@ -4,6 +4,8 @@ from tqdm import tqdm
 
 
 import numpy as np
+import torch
+import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from sklearn.svm import LinearSVC
 from sklearn.decomposition import PCA
@@ -24,18 +26,41 @@ def svm(args, train_features, train_labels, test_features, test_labels):
 
 
 def knn(args, train_features, train_labels, test_features, test_labels):
-    """Perform k-Nearest Neighbor classification using cosine similaristy as metric.
-
-    Options:
-        k (int): top k features for kNN
-    
     """
-    sim_mat = train_features @ test_features.T
+    Perform k-Nearest Neighbor classification using cosine similarity as the metric.
+
+    Args:
+        args: Command-line or function arguments containing 'k' for top k features for kNN.
+        train_features (torch.Tensor): Features from the training data.
+        train_labels (torch.Tensor): Labels corresponding to the training data.
+        test_features (torch.Tensor): Features from the test data.
+        test_labels (torch.Tensor): Labels corresponding to the test data.
+
+    Returns:
+        float: Accuracy of the kNN classifier.
+    """
+    # Normalize features to compute cosine similarity
+    train_features_norm = F.normalize(train_features, p=2, dim=1)
+    test_features_norm = F.normalize(test_features, p=2, dim=1)
+    
+    # Compute cosine similarity (dot product of normalized vectors)
+    sim_mat = train_features_norm @ test_features_norm.T
+    
+    # Get top k indices (highest similarity)
     topk = sim_mat.topk(k=args.k, dim=0)
+    
+    # Retrieve corresponding labels for top k nearest neighbors
     topk_pred = train_labels[topk.indices]
-    test_pred = topk_pred.mode(0).values.detach()
+    
+    # Compute the mode (most frequent label) along the k-nearest neighbors
+    test_pred = topk_pred.mode(dim=0).values.detach()
+    
+    # Compute accuracy (ensure the utils function is properly defined or imported)
     acc = utils.compute_accuracy(test_pred.numpy(), test_labels.numpy())
-    print("kNN: {}".format(acc))
+    
+    # Print the accuracy result
+    print(f"kNN Accuracy: {acc}")
+    
     return acc
 
 
