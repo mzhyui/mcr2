@@ -97,7 +97,7 @@ for epoch in pbar:
         
         pbar.set_postfix(loss="{:3.4f}".format(loss.item()))
         step_count += 1
-        pbar.set_postfix(step="{}".format(step_count))
+        pbar.set_description(f"Epoch {epoch} (Step {step})")
         
 
         utils.save_state(model_dir, epoch, step, loss.item(), *loss_empi, *loss_theo)
