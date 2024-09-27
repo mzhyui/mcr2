@@ -88,7 +88,7 @@ step_count = 0
 for epoch in pbar:
     pbar.set_description(f"Epoch {epoch}")
     for step, (batch_imgs, _, batch_idx) in enumerate(trainloader):
-        print(batch_imgs.shape, batch_idx.shape)
+        # print(batch_imgs.shape, batch_idx.shape)
         batch_features = net(batch_imgs.cuda())
         loss, loss_empi, loss_theo = criterion(batch_features, batch_idx)
         optimizer.zero_grad()

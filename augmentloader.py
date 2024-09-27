@@ -105,8 +105,8 @@ class _Iter():
         batch_imgs = torch.cat(batch_imgs, axis=0).float()
         batch_lbls = torch.from_numpy(np.hstack(batch_lbls))
         batch_idx = torch.from_numpy(np.hstack(batch_idx))
-        print(batch_imgs.shape, batch_lbls.shape, batch_idx.shape)
-        print(batch_lbls, batch_idx)
+        # print(batch_imgs.shape, batch_lbls.shape, batch_idx.shape)
+        # print(batch_lbls, batch_idx)
         return (batch_imgs,
                 batch_lbls,
                 batch_idx)
