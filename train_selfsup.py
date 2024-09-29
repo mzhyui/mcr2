@@ -70,12 +70,19 @@ if args.pretrain_dir is not None:
 else:
     net = tf.load_architectures(args.arch, args.fd)
 transforms = tf.load_transforms(args.transform)
-trainset = tf.load_trainset(args.data, path=args.data_dir)
-trainloader = AugmentLoader(trainset,
-                            transforms=transforms,
-                            sampler=args.sampler,
-                            batch_size=args.bs,
-                            num_aug=args.aug)
+# trainset = tf.load_trainset(args.data, path=args.data_dir)
+# trainloader = AugmentLoader(trainset,
+#                             transforms=transforms,
+#                             sampler=args.sampler,
+#                             batch_size=args.bs,
+#                             num_aug=args.aug)
+
+from custom_loader import AugmentedDataset, CustomBatchSampler
+from torchvision import datasets
+from torch.utils.data import DataLoader
+trainset = AugmentedDataset(datasets.CIFAR10(root=args.data_dir, train=True, download=True), num_aug=50, transform=transforms,)
+trainsampler = CustomBatchSampler(dataset_len=len(trainset.dataset), batch_size=256, num_aug=50, shuffle=True)
+trainloader = DataLoader(trainset, batch_sampler=trainsampler, num_workers=4)
 
 criterion = MaximalCodingRateReduction(gam1=args.gam1, gam2=args.gam2, eps=args.eps)
 optimizer = optim.SGD(net.parameters(), lr=args.lr, momentum=args.mom, weight_decay=args.wd)
